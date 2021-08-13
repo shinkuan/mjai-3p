@@ -270,21 +270,21 @@ module Mjai
                 :target => action.actor
               }))
             end
-            if (action.actor.id + 1) % 4 == self.id && action.pai.type != "t"
-              for i in 0...3
-                target_pais = (((-i)...(-i + 3)).to_a() - [0]).map() do |j|
-                  Pai.new(action.pai.type, action.pai.number + j)
-                end
-                for consumed in get_pais_combinations(target_pais, @tehais)
-                  result.push(create_action({
-                    :type => :chi,
-                    :pai => action.pai,
-                    :consumed => consumed,
-                    :target => action.actor,
-                  }))
-                end
-              end
-            end
+            # if (action.actor.id + 1) % 4 == self.id && action.pai.type != "t"
+            #   for i in 0...3
+            #     target_pais = (((-i)...(-i + 3)).to_a() - [0]).map() do |j|
+            #       Pai.new(action.pai.type, action.pai.number + j)
+            #     end
+            #     for consumed in get_pais_combinations(target_pais, @tehais)
+            #       result.push(create_action({
+            #         :type => :chi,
+            #         :pai => action.pai,
+            #         :consumed => consumed,
+            #         :target => action.actor,
+            #       }))
+            #     end
+            #   end
+            # end
             # Excludes furos which forces kuikae afterwards.
             result = result.select() do |a|
               a.type == :daiminkan || !possible_dahais_after_furo(a).empty?

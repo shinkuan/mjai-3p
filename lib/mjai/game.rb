@@ -86,7 +86,8 @@ module Mjai
             when :start_game
               # TODO change this by red config
               pais = (0...4).map() do |i|
-                ["m", "p", "s"].map(){ |t| (1..9).map(){ |n| Pai.new(t, n, n == 5 && i == 0) } } +
+                ["p", "s"].map(){ |t| (1..9).map(){ |n| Pai.new(t, n, n == 5 && i == 0) } } +
+                    [Pai.new("m", 1), Pai.new("m", 9)] +
                     (1..7).map(){ |n| Pai.new("t", n) }
               end
               @all_pais = pais.flatten().sort()

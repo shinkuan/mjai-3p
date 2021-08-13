@@ -13,7 +13,7 @@ module Mjai
         def initialize(params)
           super
           @name_to_stat = {}
-          @num_players = 4
+          @num_players = 3
         end
         
         def num_tcp_players

@@ -16,7 +16,7 @@ module Mjai
         def initialize(params)
           super()
           @params = params
-          @num_players = 4
+          @num_players = 3
         end
         
         def play()

@@ -35,7 +35,7 @@ module Mjai
                   end
                   case opts["games"]
                     when "auto"
-                      num_games = player_commands.size == 4 ? 1 : 1.0/0.0
+                      num_games = player_commands.size == 4 ? 1 : 1.0/0.0 # 変更保留(3-players)
                     when "infinite"
                       num_games = 1.0/0.0
                     else

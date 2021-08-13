@@ -53,17 +53,18 @@ module Mjai
 
             scores = last_action.scores
             id_to_name = first_action.names
+            num_players = scores.length
 
             chicha_id = archive.raw_actions[1].oya.id
             ranked_player_ids =
-                (0...4).sort_by(){ |i| [-scores[i], (i + 4 - chicha_id) % 4] }
-            for r in 0...4
+                (0...num_players).sort_by(){ |i| [-scores[i], (i + num_players - chicha_id) % num_players] }
+            for r in 0...num_players
               name = id_to_name[ranked_player_ids[r]]
               name_to_ranks[name] ||= []
               name_to_ranks[name].push(r + 1)
             end
 
-            for p in 0...4
+            for p in 0...num_players
               name = id_to_name[p]
               name_to_scores[name] ||= []
               name_to_scores[name].push(scores[p])
@@ -109,7 +110,7 @@ module Mjai
                 id_to_done_furo[raw_action.actor.id] = true
               end
               if raw_action.type == :end_kyoku
-                for p in 0...4
+                for p in 0...num_players
                   name = id_to_name[p]
 
                   if id_to_done_furo[p]
@@ -151,7 +152,7 @@ module Mjai
           for name, ranks in name_to_ranks.sort
             puts("  %s: %s" % [
                 name,
-                (1..4).map(){ |i| "[%d] %d" % [i, ranks.count(i)] }.join("  "),
+                (1..name_to_ranks.length).map(){ |i| "[%d] %d" % [i, ranks.count(i)] }.join("  "),
             ])
           end
           puts()

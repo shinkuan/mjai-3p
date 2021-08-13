@@ -62,7 +62,7 @@ module Mjai
           
           @on_action.call(action) if @on_action
           
-          responses = (0...4).map() do |i|
+          responses = (0...@players.length).map() do |i|
             @players[i].respond_to_action(action_in_view(action, i, true))
           end
 
@@ -97,11 +97,11 @@ module Mjai
               @oya = action.oya
               @chicha ||= @oya
               @dora_markers = [action.dora_marker]
-              @num_pipais = @num_initial_pipais = @all_pais.size - 13 * 4 - 14
+              @num_pipais = @num_initial_pipais = @all_pais.size - 13 * @players.length - 14
               @first_turn = true
             when :tsumo
               @num_pipais -= 1
-              if @num_initial_pipais - @num_pipais > 4
+              if @num_initial_pipais - @num_pipais > @players.length
                 @first_turn = false
               end
             when :chi, :pon, :daiminkan, :kakan, :ankan
@@ -110,7 +110,7 @@ module Mjai
               @dora_markers.push(action.dora_marker)
           end
           
-          for i in 0...4
+          for i in 0...@players.length
             @players[i].update_state(action_in_view(action, i, false))
           end
           
@@ -124,7 +124,7 @@ module Mjai
               return action.merge({:id => player_id})
             when :start_kyoku
               tehais_list = action.tehais.dup()
-              for i in 0...4
+              for i in 0...@players.length
                 if i != player_id
                   tehais_list[i] = [Pai::UNKNOWN] * tehais_list[i].size
                 end
@@ -172,7 +172,7 @@ module Mjai
         end
         
         def validate_responses(responses, action)
-          for i in 0...4
+          for i in 0...@players.length
             response = responses[i]
             begin
               if response && response.actor != @players[i]
@@ -382,7 +382,7 @@ module Mjai
         end
         
         def distance(player1, player2)
-          return (4 + player1.id - player2.id) % 4
+          return (@players.length + player1.id - player2.id) % @players.length
         end
         
         def dump_action(action, io = $stdout)

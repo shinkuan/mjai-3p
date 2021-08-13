@@ -50,11 +50,12 @@ module Mjai
             @pipais.shuffle!()
             @wanpais = @pipais.pop(14)
             dora_marker = @wanpais.pop()
-            tehais = Array.new(4){ @pipais.pop(13).sort() }
+            num_players = self.players.length
+            tehais = Array.new(num_players){ @pipais.pop(13).sort() }
             do_action({
                 :type => :start_kyoku,
                 :bakaze => @ag_bakaze,
-                :kyoku => (4 + @ag_oya.id - @ag_chicha.id) % 4 + 1,
+                :kyoku => (num_players + @ag_oya.id - @ag_chicha.id) % num_players + 1, # ここの剰余演算は不要? "@ag_oya.id + 1"でよいはず。
                 :honba => @ag_honba,
                 :kyotaku => @ag_kyotaku,
                 :oya => @ag_oya,
@@ -64,7 +65,7 @@ module Mjai
             @actor = self.oya
             while !@pipais.empty?
               mota()
-              @actor = @players[(@actor.id + 1) % 4]
+              @actor = @players[(@actor.id + 1) % num_players]
             end
             process_fanpai()
           end
@@ -115,7 +116,7 @@ module Mjai
               if reach_pending &&
                   (next_actions.empty? || ![:dahai, :hora].include?(next_actions[0].type))
                 @ag_kyotaku += 1
-                deltas = [0, 0, 0, 0]
+                deltas = Array.new(self.players.length, 0)
                 deltas[tsumo_actor.id] = -1000
                 do_action({
                     :type => :reach_accepted,
@@ -185,7 +186,7 @@ module Mjai
                 :previous_action => self.previous_action,
             })
             raise("no yaku") if !hora.valid?
-            deltas = [0, 0, 0, 0]
+            deltas = Array.new(self.players.length, 0)
             deltas[action.actor.id] += hora.points + tsumibo * 300 + @ag_kyotaku * 1000
             
             pao_id = action.actor.pao_for_id
@@ -250,7 +251,7 @@ module Mjai
               :reason => reason,
               :tenpais => tenpais,
               :tehais => tehais,
-              :deltas => [0, 0, 0, 0],
+              :deltas => Array.new(self.players.length, 0),
               :scores => players.map(){ |player| player.score }
           })
           update_oya(true, reason)
@@ -261,7 +262,7 @@ module Mjai
           tehais = []
           
           is_nagashi = false
-          nagashi_deltas = [0,0,0,0]
+          nagashi_deltas = Array.new(self.players.length, 0)
           
           for player in players
             #流し満貫の判定
@@ -270,10 +271,10 @@ module Mjai
               is_nagashi = true
               if player == self.oya
                 nagashi_deltas = nagashi_deltas.map{|i| i - 4000}
-                nagashi_deltas[player.id] += (4000 + 12000)
+                nagashi_deltas[player.id] += (4000 + (4000 * (self.players.length - 1)))
               else
                 nagashi_deltas = nagashi_deltas.map{|i| i - 2000}
-                nagashi_deltas[player.id] += (2000 + 8000)
+                nagashi_deltas[player.id] += (2000 + (4000 * (self.players.length)))
                 nagashi_deltas[self.oya.id] -= 2000
               end
             end
@@ -286,13 +287,13 @@ module Mjai
               tehais.push([Pai::UNKNOWN] * player.tehais.size)
             end
           end
-          tenpai_ids = (0...4).select(){ |i| tenpais[i] }
-          noten_ids = (0...4).select(){ |i| !tenpais[i] }
+          tenpai_ids = (0...tenpais.length).select(){ |i| tenpais[i] }
+          noten_ids = (0...tenpais.length).select(){ |i| !tenpais[i] }
           
           if is_nagashi
             deltas = nagashi_deltas
           else
-            deltas = [0, 0, 0, 0]
+            deltas = Array.new(self.players.length, 0)
             if (1..3).include?(tenpai_ids.size)
               for id in tenpai_ids
                 deltas[id] += 3000 / tenpai_ids.size
@@ -319,7 +320,7 @@ module Mjai
           if renchan
             @ag_oya = self.oya
           else
-            @ag_oya = @players[(self.oya.id + 1) % 4]
+            @ag_oya = @players[(self.oya.id + 1) % @players.length]
             @ag_bakaze = @ag_bakaze.succ if @ag_oya == @players[0]
           end
           if renchan || ryukyoku_reason
@@ -349,9 +350,9 @@ module Mjai
           end
           
           if renchan
-            if (@ag_bakaze == last_bakaze.succ) || (@ag_bakaze == last_bakaze && @ag_oya == @players[3]) #オーラス
+            if (@ag_bakaze == last_bakaze.succ) || (@ag_bakaze == last_bakaze && @ag_oya == @players[-1]) #オーラス
               return @ag_oya.score >= 30000 &&
-                (0...4).all? { |i| @ag_oya.id == i || @ag_oya.score > @players[i].score }
+                (0...@players.length).all? { |i| @ag_oya.id == i || @ag_oya.score > @players[i].score }
             end
           else
             if @ag_bakaze == last_bakaze.succ #オーラス
@@ -378,7 +379,7 @@ module Mjai
         
         def get_final_scores()
           # The winner takes remaining kyotaku.
-          deltas = [0, 0, 0, 0]
+          deltas = Array.new(self.players.length, 0)
           deltas[self.ranked_players[0].id] = @ag_kyotaku * 1000
           return get_scores(deltas)
         end
@@ -388,7 +389,7 @@ module Mjai
         end
         
         def get_scores(deltas)
-          return (0...4).map(){ |i| self.players[i].score + deltas[i] }
+          return (0...self.players.length).map(){ |i| self.players[i].score + deltas[i] }
         end
         
     end

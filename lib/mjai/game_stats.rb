@@ -23,7 +23,7 @@ module Mjai
           :tsuiso => "字一色", :ryuiso => "緑一色", :chinroto => "清老頭",
           :churenpoton => "九蓮宝燈", :kokushimuso => "国士無双",
           :daisushi => "大四喜", :shosushi => "小四喜", :sukantsu => "四槓子",
-          :dora => "ドラ", :uradora => "裏ドラ", :akadora => "赤ドラ",
+          :dora => "ドラ", :uradora => "裏ドラ", :akadora => "赤ドラ", :nukidora => "抜きドラ"
         }
 
         def self.print(mjson_paths)
@@ -81,7 +81,7 @@ module Mjai
                 name_to_hora_points[name] ||= []
                 name_to_hora_points[name].push(raw_action.hora_points)
                 for yaku, fan in raw_action.yakus
-                  if yaku == :dora || yaku == :akadora || yaku == :uradora
+                  if yaku == :dora || yaku == :akadora || yaku == :uradora || yaku == :nukidora
                     name_to_dora_stats[name] ||= {}
                     name_to_dora_stats[name][yaku] ||= 0
                     name_to_dora_stats[name][yaku] += fan

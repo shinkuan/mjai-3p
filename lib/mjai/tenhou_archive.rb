@@ -30,7 +30,7 @@ module Mjai
               :tenho, :chiho, :daisangen, :suanko, :suanko, :tsuiso,
               :ryuiso, :chinroto, :churenpoton, :churenpoton, :kokushimuso,
               :kokushimuso, :daisushi, :shosushi, :sukantsu,
-              :dora, :uradora, :akadora,
+              :dora, :uradora, :akadora, :nukidora,
             ]
 
             def on_tenhou_event(elem, next_elem = nil)

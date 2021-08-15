@@ -161,7 +161,7 @@ module Mjai
             attr_reader(:points, :oya_payment, :ko_payment, :yakus, :fan, :fu)
             
             def valid?
-              return !@yakus.select(){ |n, f| ![:dora, :uradora, :akadora].include?(n) }.empty?
+              return !@yakus.select(){ |n, f| ![:dora, :uradora, :akadora, :nukidora].include?(n) }.empty?
             end
             
             # http://ja.wikipedia.org/wiki/%E9%BA%BB%E9%9B%80%E3%81%AE%E5%BD%B9%E4%B8%80%E8%A6%A7
@@ -213,6 +213,7 @@ module Mjai
               add_yaku(:dora, @hora.num_doras, @hora.num_doras)
               add_yaku(:uradora, @hora.num_uradoras, @hora.num_uradoras)
               add_yaku(:akadora, @hora.num_akadoras, @hora.num_akadoras)
+              add_yaku(:nukidora, @hora.num_nukidoras, @hora.num_nukidoras)
               
               # 一飜
               if @hora.reach
@@ -489,6 +490,7 @@ module Mjai
           :oya, :bakaze, :jikaze, :doras, :uradoras,
           :reach, :double_reach, :ippatsu,
           :rinshan, :haitei, :first_turn, :chankan,
+          :nukidoras,
         ])
         
         def initialize(params)
@@ -503,6 +505,7 @@ module Mjai
           @num_doras = count_doras(self.doras)
           @num_uradoras = count_doras(self.uradoras)
           @num_akadoras = @all_pais.select(){ |pai| pai.red? }.size
+          @num_nukidoras = self.nukidoras.size
           
           num_same_as_taken = @free_pais.select(){ |pai| pai.same_symbol?(self.taken) }.size
           @shanten = ShantenAnalysis.new(@free_pais, -1)
@@ -515,7 +518,7 @@ module Mjai
           
         end
         
-        attr_reader(:free_pais, :all_pais, :num_doras, :num_uradoras, :num_akadoras)
+        attr_reader(:free_pais, :all_pais, :num_doras, :num_uradoras, :num_akadoras, :num_nukidoras)
         def_delegators(:@best_candidate,
             :valid?, :points, :oya_payment, :ko_payment, :yakus, :fan, :fu)
         

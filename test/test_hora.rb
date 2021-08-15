@@ -16,6 +16,7 @@ class TC_Hora < Test::Unit::TestCase
       :jikaze => Pai.new("S"),
       :doras => Pai.parse_pais("2m"),
       :uradoras => Pai.parse_pais("2s"),
+      :nukidoras => [],
       :reach => false,
       :double_reach => false,
       :ippatsu => false,
@@ -51,6 +52,13 @@ class TC_Hora < Test::Unit::TestCase
       assert(has_yaku?([:akadora, 1], {
         :tehais => Pai.parse_pais("234678m34p5pr3477s"),
         :taken => Pai.new("5s"),
+        :hora_type => :ron,
+      }))
+
+      assert(has_yaku?([:nukidora, 1], {
+        :tehais => Pai.parse_pais("234678m345p3477s"),
+        :taken => Pai.new("5s"),
+        :nukidoras => [Pai.new("N")],
         :hora_type => :ron,
       }))
       

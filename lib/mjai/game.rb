@@ -359,6 +359,7 @@ module Mjai
             :jikaze => action.actor.jikaze,
             :doras => self.doras,
             :uradoras => uradoras,
+            :nukidoras => action.actor.nukidoras,
             :reach => action.actor.reach?,
             :double_reach => action.actor.double_reach?,
             :ippatsu => action.actor.ippatsu_chance?,

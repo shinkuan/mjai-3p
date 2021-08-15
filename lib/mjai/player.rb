@@ -411,6 +411,7 @@ module Mjai
             :jikaze => self.jikaze,
             :doras => self.game.doras,
             :uradoras => [],  # TODO
+            :nukidoras => [], # TODO
             :reach => self.reach?,
             :double_reach => false,  # TODO
             :ippatsu => false,  # TODO

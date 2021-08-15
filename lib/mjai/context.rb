@@ -12,6 +12,7 @@ module Mjai
           :oya, :bakaze, :jikaze, :doras, :uradoras,
           :reach, :double_reach, :ippatsu,
           :rinshan, :haitei, :first_turn, :chankan,
+          :nukidoras,
         ])
         
         def initialize(fields)

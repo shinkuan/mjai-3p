@@ -97,7 +97,7 @@ module Mjai
               next_actions = nil
               next_actions ||= choose_actions(responses)
               case action.type
-                when :daiminkan, :kakan, :ankan
+                when :daiminkan, :kakan, :ankan, :nukidora
                   if action.type == :ankan
                     add_dora()
                   end

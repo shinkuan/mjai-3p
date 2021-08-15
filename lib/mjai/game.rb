@@ -105,7 +105,7 @@ module Mjai
               if @num_initial_pipais - @num_pipais > @players.length
                 @first_turn = false
               end
-            when :chi, :pon, :daiminkan, :kakan, :ankan
+            when :chi, :pon, :daiminkan, :kakan, :ankan, :nukidora
               @first_turn = false
             when :dora
               @dora_markers.push(action.dora_marker)
@@ -140,7 +140,7 @@ module Mjai
               else
                 return action.merge({:pai => Pai::UNKNOWN})
               end
-            when :dahai, :kakan
+            when :dahai, :kakan, :nukidora
               if action.actor != player
                 return action.merge({
                     :possible_actions =>
@@ -201,7 +201,7 @@ module Mjai
               when :tsumo
                 if is_actor
                   valid = response &&
-                      [:dahai, :reach, :ankan, :kakan, :hora, :ryukyoku].include?(response.type)
+                      [:dahai, :reach, :ankan, :kakan, :hora, :ryukyoku, :nukidora].include?(response.type)
                 else
                   valid = !response
                 end
@@ -220,7 +220,7 @@ module Mjai
               when :ankan, :daiminkan
                 # Actor should wait for tsumo.
                 valid = !response
-              when :kakan
+              when :kakan, :nukidora
                 if is_actor
                   # Actor should wait for tsumo.
                   valid = !response
@@ -295,7 +295,6 @@ module Mjai
                     a.consumed.sort() == response.consumed.sort()
               end
               validate(valid, "The furo is not allowed.")
-            
             when :reach
               validate(response.actor.can_reach?, "Cannot reach.")
             

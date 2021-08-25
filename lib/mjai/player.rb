@@ -56,7 +56,7 @@ module Mjai
             when :start_game
               @id = action.id
               @name = action.names[@id] if action.names
-              @score = 25000
+              @score = 30000
               @attributes = OpenStruct.new()
               @tehais = nil
               @furos = nil

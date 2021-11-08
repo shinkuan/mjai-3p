@@ -37,9 +37,7 @@ module Mjai
               verify_tenhou_tehais() if @first_kyoku_started
               case elem.name
                 when "GO"
-                  if elem["type"].to_i & 16 != 0  # Sanma.
-                    raise(Archive::UnsupportedArchiveError, "Sanma is not supported.")
-                  end
+                  return nil
                 when "SHUFFLE", "BYE"
                   # BYE: log out
                   return nil
@@ -223,7 +221,7 @@ module Mjai
                 when "N"
                   actor = self.players[elem["who"].to_i()]
                   furo = TenhouFuro.new(elem["m"].to_i())
-                  consumed_pids = furo.type == :kakan ? [furo.taken_pid] : furo.consumed_pids
+                  consumed_pids = ([:kakan, :nukidora].include?(furo.type)) ? [furo.taken_pid] : furo.consumed_pids
                   for pid in consumed_pids
                     delete_tehai_by_pid(actor, pid)
                   end
@@ -335,7 +333,7 @@ module Mjai
                 :pai => pid_to_pai(@taken_pid),
                 :consumed => @consumed_pids.map(){ |pid| pid_to_pai(pid) },
               }
-              if ![:ankan, :kakan].include?(@type)
+              if ![:ankan, :kakan, :nukidora].include?(@type)
                 params[:target] = game.players[(actor.id + @target_dir) % 4]
               end
               return Action.new(params)
@@ -420,6 +418,14 @@ module Mjai
                   @consumed_pids.push(pid)
                 end
               end
+            end
+
+            def parse_nukidora()
+              read_bits(2)
+              pid = read_bits(7)
+              @taken_pid = pid.to_s()
+              @type = :nukidora
+              @consumed_pids = []
             end
             
             def read_bits(num_bits)

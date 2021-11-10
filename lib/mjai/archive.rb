@@ -23,7 +23,7 @@ module Mjai
         end
         
         def initialize()
-          super((0...4).map(){ PuppetPlayer.new() })
+          super((0...3).map(){ PuppetPlayer.new() })
           @actions = nil
         end
         

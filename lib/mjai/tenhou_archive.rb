@@ -43,7 +43,7 @@ module Mjai
                   return nil
                 when "UN"
                   if !@names  # Somehow there can be multiple UN's.
-                    escaped_names = (0...4).map(){ |i| elem["n%d" % i] }
+                    escaped_names = (0...3).map(){ |i| elem["n%d" % i] }
                     return :broken if escaped_names.index(nil)  # Something is wrong.
                     @names = escaped_names.map(){ |s| URI.decode(s) }
                   end
@@ -60,13 +60,13 @@ module Mjai
                     # case of daburon, so we cannot detect the end of kyoku in AGARI.
                     do_action({:type => :end_kyoku})
                   end
-                  (kyoku_id, honba, _, _, _, dora_marker_pid) = elem["seed"].split(/,/).map(&:to_i)
+                  (kyoku_id, honba, reach, _, _, dora_marker_pid) = elem["seed"].split(/,/).map(&:to_i)
                   bakaze = Pai.new("t", kyoku_id / 4 + 1)
                   kyoku_num = kyoku_id % 4 + 1
                   oya = elem["oya"].to_i()
                   @first_kyoku_started = true
                   tehais_list = []
-                  for i in 0...4
+                  for i in 0...3
                     if i == 0
                       hai_str = elem["hai"] || elem["hai0"]
                     else
@@ -81,6 +81,7 @@ module Mjai
                     :bakaze => bakaze,
                     :kyoku => kyoku_num,
                     :honba => honba,
+                    :kyotaku => reach,
                     :oya => self.players[oya],
                     :dora_marker => pid_to_pai(dora_marker_pid.to_s()),
                     :tehais => tehais_list,
@@ -119,10 +120,10 @@ module Mjai
                     when "1"
                       return do_action({:type => :reach, :actor => actor})
                     when "2"
-                      deltas = [0, 0, 0, 0]
+                      deltas = Array.new(3, 0)
                       deltas[actor.id] = -1000
                       # Old Tenhou archive doesn't have "ten" attribute. Calculates it manually.
-                      scores = (0...4).map() do |i|
+                      scores = (0...3).map() do |i|
                         self.players[i].score + deltas[i]
                       end
                       return do_action({
@@ -183,7 +184,7 @@ module Mjai
                   points_params = get_points_params(elem["sc"])
                   tenpais = []
                   tehais = []
-                  for i in 0...4
+                  for i in 0...3
                     name = "hai%d" % i
                     if elem[name]
                       tenpais.push(true)

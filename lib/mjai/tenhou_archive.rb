@@ -64,7 +64,7 @@ module Mjai
                   bakaze = Pai.new("t", kyoku_id / 4 + 1)
                   kyoku_num = kyoku_id % 4 + 1
                   oya = elem["oya"].to_i()
-                  ten = elem["seed"].split(/,/).map{|t| t.to_i() * 100}.slice(0...3)
+                  ten = elem["ten"].split(/,/).map{|t| t.to_i() * 100}.slice(0...3)
                   @first_kyoku_started = true
                   tehais_list = []
                   for i in 0...3

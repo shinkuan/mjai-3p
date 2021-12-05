@@ -246,9 +246,9 @@ module Mjai
             def get_points_params(sc_str)
               sc_nums = sc_str.split(/,/).map(&:to_i)
               result = {}
-              result[:deltas] = (0...4).map(){ |i| sc_nums[2 * i + 1] * 100 }
+              result[:deltas] = (0...3).map(){ |i| sc_nums[2 * i + 1] * 100 }
               result[:scores] =
-                  (0...4).map(){ |i| sc_nums[2 * i] * 100 + result[:deltas][i] }
+                  (0...3).map(){ |i| sc_nums[2 * i] * 100 + result[:deltas][i] }
               return result
             end
             

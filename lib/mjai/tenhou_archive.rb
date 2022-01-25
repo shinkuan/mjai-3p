@@ -102,7 +102,7 @@ module Mjai
                   prefix = $1
                   pid = $2
                   player_id = ["D", "E", "F", "G"].index(prefix.upcase)
-                  if pid && pid == self.players[player_id].attributes.tenhou_tehai_pids[-1]
+                  if pid && pid == self.players[player_id].attributes.tenhou_tehai_pids[-1] && @previous_action.type == :tsumo
                     tsumogiri = true
                   elsif prefix != prefix.upcase
                     tsumogiri = true

@@ -445,8 +445,14 @@ module Mjai
         def initialize(path)
           super()
           @path = path
-          Zlib::GzipReader.open(path) do |f|
-            @xml = f.read().force_encoding("utf-8")
+          begin
+            Zlib::GzipReader.open(path) do |f|
+              @xml = f.read.force_encoding("utf-8")
+            end
+          rescue Zlib::GzipFile::Error
+            File.open(path, 'r') do |f|
+              @xml = f.read.force_encoding("utf-8")
+            end
           end
         end
         

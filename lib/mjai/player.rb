@@ -11,6 +11,7 @@ module Mjai
         attr_reader(:id)
         attr_reader(:tehais)  # 手牌
         attr_reader(:furos)  # 副露
+        attr_reader(:nukidoras) # 抜きドラ
         attr_reader(:ho)  # 河 (鳴かれた牌を含まない)
         attr_reader(:sutehais)  # 捨牌 (鳴かれた牌を含む)
         attr_reader(:extra_anpais)  # sutehais以外のこのプレーヤに対する安牌
@@ -55,10 +56,11 @@ module Mjai
             when :start_game
               @id = action.id
               @name = action.names[@id] if action.names
-              @score = 25000
+              @score = 35000
               @attributes = OpenStruct.new()
               @tehais = nil
               @furos = nil
+              @nukidoras = nil
               @ho = nil
               @sutehais = nil
               @extra_anpais = nil
@@ -71,6 +73,7 @@ module Mjai
             when :start_kyoku
               @tehais = action.tehais[self.id]
               @furos = []
+              @nukidoras = []
               @ho = []
               @sutehais = []
               @extra_anpais = []
@@ -80,7 +83,7 @@ module Mjai
               @ippatsu_chance = false
               @pao_for_id = nil
               @rinshan = false
-            when :chi, :pon, :daiminkan, :ankan
+            when :chi, :pon, :daiminkan, :ankan, :nukidora
               @ippatsu_chance = false
             when :tsumo
               # - 純正巡消しは発声＆和了打診後（加槓のみ)、嶺上ツモの前（連続する加槓の２回目には一発は付かない）
@@ -135,6 +138,10 @@ module Mjai
                   :consumed => @furos[pon_index].consumed + [action.pai],
                   :target => @furos[pon_index].target,
                 })
+                @rinshan = true
+              when :nukidora
+                delete_tehai(action.pai)
+                @nukidoras.push(action.pai)
                 @rinshan = true
               when :reach
                 @reach_state = :declared
@@ -197,7 +204,7 @@ module Mjai
           if action.type == :tsumo && action.actor == self
             hora_type = :tsumo
             pais = @tehais
-          elsif [:dahai, :kakan].include?(action.type) && action.actor != self
+          elsif [:dahai, :kakan, :nukidora].include?(action.type) && action.actor != self
             hora_type = :ron
             pais = @tehais + [action.pai]
           else
@@ -223,7 +230,7 @@ module Mjai
           action = @game.current_action
           result = []
           if (action.type == :tsumo && action.actor == self) ||
-              ([:dahai, :kakan].include?(action.type) && action.actor != self)
+              ([:dahai, :kakan, :nukidora].include?(action.type) && action.actor != self)
             if can_hora?
               result.push(create_action({
                   :type => :hora,
@@ -270,21 +277,21 @@ module Mjai
                 :target => action.actor
               }))
             end
-            if (action.actor.id + 1) % 4 == self.id && action.pai.type != "t"
-              for i in 0...3
-                target_pais = (((-i)...(-i + 3)).to_a() - [0]).map() do |j|
-                  Pai.new(action.pai.type, action.pai.number + j)
-                end
-                for consumed in get_pais_combinations(target_pais, @tehais)
-                  result.push(create_action({
-                    :type => :chi,
-                    :pai => action.pai,
-                    :consumed => consumed,
-                    :target => action.actor,
-                  }))
-                end
-              end
-            end
+            # if (action.actor.id + 1) % 4 == self.id && action.pai.type != "t"
+            #   for i in 0...3
+            #     target_pais = (((-i)...(-i + 3)).to_a() - [0]).map() do |j|
+            #       Pai.new(action.pai.type, action.pai.number + j)
+            #     end
+            #     for consumed in get_pais_combinations(target_pais, @tehais)
+            #       result.push(create_action({
+            #         :type => :chi,
+            #         :pai => action.pai,
+            #         :consumed => consumed,
+            #         :target => action.actor,
+            #       }))
+            #     end
+            #   end
+            # end
             # Excludes furos which forces kuikae afterwards.
             result = result.select() do |a|
               a.type == :daiminkan || !possible_dahais_after_furo(a).empty?
@@ -311,6 +318,9 @@ module Mjai
               pon = self.furos.find(){ |f| f.type == :pon && f.taken.same_symbol?(pai) }
               if pon
                 result.push(create_action({:type => :kakan, :pai => pai, :consumed => pon.pais}))
+              end
+              if pai.to_s == "N"
+                result.push(create_action({:type => :nukidora, :pai => pai}))
               end
             end
             
@@ -401,6 +411,7 @@ module Mjai
             :jikaze => self.jikaze,
             :doras => self.game.doras,
             :uradoras => [],  # TODO
+            :nukidoras => [], # TODO
             :reach => self.reach?,
             :double_reach => false,  # TODO
             :ippatsu => false,  # TODO

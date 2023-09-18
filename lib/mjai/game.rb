@@ -62,7 +62,7 @@ module Mjai
           
           @on_action.call(action) if @on_action
           
-          responses = (0...4).map() do |i|
+          responses = (0...@players.length).map() do |i|
             @players[i].respond_to_action(action_in_view(action, i, true))
           end
 
@@ -86,7 +86,8 @@ module Mjai
             when :start_game
               # TODO change this by red config
               pais = (0...4).map() do |i|
-                ["m", "p", "s"].map(){ |t| (1..9).map(){ |n| Pai.new(t, n, n == 5 && i == 0) } } +
+                ["p", "s"].map(){ |t| (1..9).map(){ |n| Pai.new(t, n, n == 5 && i == 0) } } +
+                    [Pai.new("m", 1), Pai.new("m", 9)] +
                     (1..7).map(){ |n| Pai.new("t", n) }
               end
               @all_pais = pais.flatten().sort()
@@ -97,20 +98,20 @@ module Mjai
               @oya = action.oya
               @chicha ||= @oya
               @dora_markers = [action.dora_marker]
-              @num_pipais = @num_initial_pipais = @all_pais.size - 13 * 4 - 14
+              @num_pipais = @num_initial_pipais = @all_pais.size - 13 * @players.length - 14
               @first_turn = true
             when :tsumo
               @num_pipais -= 1
-              if @num_initial_pipais - @num_pipais > 4
+              if @num_initial_pipais - @num_pipais > @players.length
                 @first_turn = false
               end
-            when :chi, :pon, :daiminkan, :kakan, :ankan
+            when :chi, :pon, :daiminkan, :kakan, :ankan, :nukidora
               @first_turn = false
             when :dora
               @dora_markers.push(action.dora_marker)
           end
           
-          for i in 0...4
+          for i in 0...@players.length
             @players[i].update_state(action_in_view(action, i, false))
           end
           
@@ -124,7 +125,7 @@ module Mjai
               return action.merge({:id => player_id})
             when :start_kyoku
               tehais_list = action.tehais.dup()
-              for i in 0...4
+              for i in 0...@players.length
                 if i != player_id
                   tehais_list[i] = [Pai::UNKNOWN] * tehais_list[i].size
                 end
@@ -139,7 +140,7 @@ module Mjai
               else
                 return action.merge({:pai => Pai::UNKNOWN})
               end
-            when :dahai, :kakan
+            when :dahai, :kakan, :nukidora
               if action.actor != player
                 return action.merge({
                     :possible_actions =>
@@ -172,7 +173,7 @@ module Mjai
         end
         
         def validate_responses(responses, action)
-          for i in 0...4
+          for i in 0...@players.length
             response = responses[i]
             begin
               if response && response.actor != @players[i]
@@ -200,7 +201,7 @@ module Mjai
               when :tsumo
                 if is_actor
                   valid = response &&
-                      [:dahai, :reach, :ankan, :kakan, :hora, :ryukyoku].include?(response.type)
+                      [:dahai, :reach, :ankan, :kakan, :hora, :ryukyoku, :nukidora].include?(response.type)
                 else
                   valid = !response
                 end
@@ -219,7 +220,7 @@ module Mjai
               when :ankan, :daiminkan
                 # Actor should wait for tsumo.
                 valid = !response
-              when :kakan
+              when :kakan, :nukidora
                 if is_actor
                   # Actor should wait for tsumo.
                   valid = !response
@@ -294,7 +295,6 @@ module Mjai
                     a.consumed.sort() == response.consumed.sort()
               end
               validate(valid, "The furo is not allowed.")
-            
             when :reach
               validate(response.actor.can_reach?, "Cannot reach.")
             
@@ -359,6 +359,7 @@ module Mjai
             :jikaze => action.actor.jikaze,
             :doras => self.doras,
             :uradoras => uradoras,
+            :nukidoras => action.actor.nukidoras,
             :reach => action.actor.reach?,
             :double_reach => action.actor.double_reach?,
             :ippatsu => action.actor.ippatsu_chance?,
@@ -382,7 +383,7 @@ module Mjai
         end
         
         def distance(player1, player2)
-          return (4 + player1.id - player2.id) % 4
+          return (@players.length + player1.id - player2.id) % @players.length
         end
         
         def dump_action(action, io = $stdout)

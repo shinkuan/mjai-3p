@@ -16,6 +16,7 @@ module Mjai
         def initialize(params)
           super()
           @params = params
+          @num_players = 3
         end
         
         def play()
@@ -39,7 +40,7 @@ module Mjai
                 else
                   if action_obj["type"] == "start_game"
                     @my_id = action_obj["id"]
-                    self.players = Array.new(4) do |i|
+                    self.players = Array.new(@num_players) do |i|
                       i == @my_id ? @params[:player] : PuppetPlayer.new()
                     end
                   end

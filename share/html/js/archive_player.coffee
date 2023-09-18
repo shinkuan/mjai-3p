@@ -183,6 +183,12 @@ loadAction = (action) ->
             taken: action.pai
             consumed: action.consumed
             target: furos[i].target
+    when "nukidora"
+      deleteTehai(actorPlayer, action.pai)
+      actorPlayer.furos = actorPlayer.furos.concat([
+          type: action.type
+          pai : action.pai
+      ])
     when "hora", "ryukyoku"
       null
     when "dora"
@@ -300,6 +306,9 @@ renderAction = (action) ->
         if furo.type == "ankan"
           pais = ["?"].concat(furo.consumed[0...2]).concat(["?"])
           poses = [1, 1, 1, 1]
+        else if furo.type == "nukidora"
+          pais = [furo.pai]
+          poses = [1]
         else
           dir = (4 + furo.target - i) % 4
           if furo.type in ["daiminkan", "kakan"]

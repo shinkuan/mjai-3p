@@ -30,22 +30,20 @@ module Mjai
               :tenho, :chiho, :daisangen, :suanko, :suanko, :tsuiso,
               :ryuiso, :chinroto, :churenpoton, :churenpoton, :kokushimuso,
               :kokushimuso, :daisushi, :shosushi, :sukantsu,
-              :dora, :uradora, :akadora,
+              :dora, :uradora, :akadora, :nukidora,
             ]
 
             def on_tenhou_event(elem, next_elem = nil)
               verify_tenhou_tehais() if @first_kyoku_started
               case elem.name
                 when "GO"
-                  if elem["type"].to_i & 16 != 0  # Sanma.
-                    raise(Archive::UnsupportedArchiveError, "Sanma is not supported.")
-                  end
+                  return nil
                 when "SHUFFLE", "BYE"
                   # BYE: log out
                   return nil
                 when "UN"
                   if !@names  # Somehow there can be multiple UN's.
-                    escaped_names = (0...4).map(){ |i| elem["n%d" % i] }
+                    escaped_names = (0...3).map(){ |i| elem["n%d" % i] }
                     return :broken if escaped_names.index(nil)  # Something is wrong.
                     @names = escaped_names.map(){ |s| URI.decode(s) }
                   end
@@ -62,13 +60,14 @@ module Mjai
                     # case of daburon, so we cannot detect the end of kyoku in AGARI.
                     do_action({:type => :end_kyoku})
                   end
-                  (kyoku_id, honba, _, _, _, dora_marker_pid) = elem["seed"].split(/,/).map(&:to_i)
+                  (kyoku_id, honba, reach, _, _, dora_marker_pid) = elem["seed"].split(/,/).map(&:to_i)
                   bakaze = Pai.new("t", kyoku_id / 4 + 1)
                   kyoku_num = kyoku_id % 4 + 1
                   oya = elem["oya"].to_i()
+                  ten = elem["ten"].split(/,/).map{|t| t.to_i() * 100}.slice(0...3)
                   @first_kyoku_started = true
                   tehais_list = []
-                  for i in 0...4
+                  for i in 0...3
                     if i == 0
                       hai_str = elem["hai"] || elem["hai0"]
                     else
@@ -83,7 +82,9 @@ module Mjai
                     :bakaze => bakaze,
                     :kyoku => kyoku_num,
                     :honba => honba,
+                    :kyotaku => reach,
                     :oya => self.players[oya],
+                    :scores => ten,
                     :dora_marker => pid_to_pai(dora_marker_pid.to_s()),
                     :tehais => tehais_list,
                   })
@@ -101,7 +102,7 @@ module Mjai
                   prefix = $1
                   pid = $2
                   player_id = ["D", "E", "F", "G"].index(prefix.upcase)
-                  if pid && pid == self.players[player_id].attributes.tenhou_tehai_pids[-1]
+                  if pid && pid == self.players[player_id].attributes.tenhou_tehai_pids[-1] && @previous_action.type == :tsumo
                     tsumogiri = true
                   elsif prefix != prefix.upcase
                     tsumogiri = true
@@ -121,10 +122,10 @@ module Mjai
                     when "1"
                       return do_action({:type => :reach, :actor => actor})
                     when "2"
-                      deltas = [0, 0, 0, 0]
+                      deltas = Array.new(3, 0)
                       deltas[actor.id] = -1000
                       # Old Tenhou archive doesn't have "ten" attribute. Calculates it manually.
-                      scores = (0...4).map() do |i|
+                      scores = (0...3).map() do |i|
                         self.players[i].score + deltas[i]
                       end
                       return do_action({
@@ -185,7 +186,7 @@ module Mjai
                   points_params = get_points_params(elem["sc"])
                   tenpais = []
                   tehais = []
-                  for i in 0...4
+                  for i in 0...3
                     name = "hai%d" % i
                     if elem[name]
                       tenpais.push(true)
@@ -223,7 +224,7 @@ module Mjai
                 when "N"
                   actor = self.players[elem["who"].to_i()]
                   furo = TenhouFuro.new(elem["m"].to_i())
-                  consumed_pids = furo.type == :kakan ? [furo.taken_pid] : furo.consumed_pids
+                  consumed_pids = ([:kakan, :nukidora].include?(furo.type)) ? [furo.taken_pid] : furo.consumed_pids
                   for pid in consumed_pids
                     delete_tehai_by_pid(actor, pid)
                   end
@@ -245,9 +246,9 @@ module Mjai
             def get_points_params(sc_str)
               sc_nums = sc_str.split(/,/).map(&:to_i)
               result = {}
-              result[:deltas] = (0...4).map(){ |i| sc_nums[2 * i + 1] * 100 }
+              result[:deltas] = (0...3).map(){ |i| sc_nums[2 * i + 1] * 100 }
               result[:scores] =
-                  (0...4).map(){ |i| sc_nums[2 * i] * 100 + result[:deltas][i] }
+                  (0...3).map(){ |i| sc_nums[2 * i] * 100 + result[:deltas][i] }
               return result
             end
             
@@ -335,7 +336,7 @@ module Mjai
                 :pai => pid_to_pai(@taken_pid),
                 :consumed => @consumed_pids.map(){ |pid| pid_to_pai(pid) },
               }
-              if ![:ankan, :kakan].include?(@type)
+              if ![:ankan, :kakan, :nukidora].include?(@type)
                 params[:target] = game.players[(actor.id + @target_dir) % 4]
               end
               return Action.new(params)
@@ -420,6 +421,14 @@ module Mjai
                   @consumed_pids.push(pid)
                 end
               end
+            end
+
+            def parse_nukidora()
+              read_bits(2)
+              pid = read_bits(7)
+              @taken_pid = pid.to_s()
+              @type = :nukidora
+              @consumed_pids = []
             end
             
             def read_bits(num_bits)

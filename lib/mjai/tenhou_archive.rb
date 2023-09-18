@@ -45,7 +45,7 @@ module Mjai
                   if !@names  # Somehow there can be multiple UN's.
                     escaped_names = (0...3).map(){ |i| elem["n%d" % i] }
                     return :broken if escaped_names.index(nil)  # Something is wrong.
-                    @names = escaped_names.map(){ |s| URI.decode(s) }
+                    @names = escaped_names.map(){ |s| URI.decode_www_form_component(s) }
                   end
                   return nil
                 when "TAIKYOKU"
